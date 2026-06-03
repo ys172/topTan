@@ -16,7 +16,7 @@
   --earth: #d89a00;
   --metal: #3f7fe8;
   --water: #155487;
-  font-family: KaiTi, "KaiTi_GB2312", "STKaiti", "Kaiti SC", "Noto Serif CJK SC", "Source Han Serif SC", SimSun, serif;
+  font-family: SimSun, "宋体", serif;
 }
 
 * {
@@ -32,7 +32,7 @@ body {
   margin: 0;
   background: var(--page);
   color: var(--text);
-  font-family: KaiTi, "KaiTi_GB2312", "STKaiti", "Kaiti SC", "Noto Serif CJK SC", "Source Han Serif SC", SimSun, serif;
+  font-family: SimSun, "宋体", serif;
 }
 
 button,
@@ -980,6 +980,20 @@ button {
 
 .duiyuan-apply-text p {
   margin: 0;
+}
+
+@media (max-width: 480px) {
+  .duiyuan-apply-row {
+    grid-template-columns: 86px minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  .duiyuan-apply-text {
+    grid-template-columns: 1fr;
+    row-gap: 6px;
+    font-size: 17px;
+    line-height: 1.45;
+  }
 }
 
 .fortune-summary {
@@ -1978,8 +1992,8 @@ body[data-page="chart"] .archive-query-bar button {
   }
 
   .duiyuan-apply-row {
-    grid-template-columns: 84px 1fr;
-    gap: 12px;
+    grid-template-columns: 78px minmax(0, 1fr);
+    gap: 10px;
   }
 
   .duiyuan-apply-tag {
@@ -1987,7 +2001,6 @@ body[data-page="chart"] .archive-query-bar button {
   }
 
   .duiyuan-apply-text {
-    column-gap: 9px;
     font-size: 16px;
   }
 
