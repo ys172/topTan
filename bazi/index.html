@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>四柱干支历</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="phone">
+      <header class="input-backbar">
+        <button id="backToMainHome" class="input-back-button" type="button" aria-label="返回首页">‹</button>
+        <h1>四柱干支历</h1>
+        <span class="input-top-mark" aria-hidden="true">◎</span>
+      </header>
+      <header class="topbar">
+        <button id="backToInput" class="icon-button" type="button" aria-label="返回">‹</button>
+        <h1>干支历法</h1>
+        <button id="toggleEdit" class="text-button" type="button" aria-hidden="true"></button>
+      </header>
+
+      <section id="editPanel" class="card edit-card open">
+        <form id="chartForm" class="form">
+          <section class="entry-panel">
+            <div class="entry-row gender-row">
+              <span>性别</span>
+              <div class="gender-choice" role="radiogroup" aria-label="性别">
+                <button class="gender-card active" type="button" data-gender="男" aria-pressed="true">
+                  <span>男</span>
+                </button>
+                <button class="gender-card" type="button" data-gender="女" aria-pressed="false">
+                  <span>女</span>
+                </button>
+              </div>
+            </div>
+            <input id="gender" type="hidden" value="男" />
+
+            <label class="entry-row">
+              <span class="name-label">姓名</span>
+              <input id="personName" type="text" value="" />
+            </label>
+
+            <label class="entry-row">
+              <span>出生时辰</span>
+              <button id="openTimePicker" class="entry-value" type="button">请选择</button>
+              <input id="birthDate" type="hidden" required />
+              <input id="birthTime" type="hidden" required />
+            </label>
+
+            <label class="entry-row">
+              <span>出生地址</span>
+              <button id="openPlacePicker" class="entry-value" type="button">请选择</button>
+              <select id="birthProvince" class="sr-only"></select>
+              <select id="birthCity" class="sr-only"></select>
+            </label>
+
+            <label class="check-row true-solar-row">
+              <input id="useTrueSolar" type="checkbox" checked />
+              <span>按出生地换算真太阳时</span>
+            </label>
+
+            <button class="submit-button" type="submit">开始排盘</button>
+            <p id="errorText" class="error" role="alert"></p>
+            <nav class="home-tabbar" aria-label="首页菜单">
+              <button id="clearHomeForm" type="button">清空</button>
+              <button id="openQueryHome" type="button">查询</button>
+            </nav>
+          </section>
+        </form>
+      </section>
+
+      <section id="timePicker" class="picker-layer hidden" aria-modal="true">
+        <div class="picker-panel">
+          <div class="picker-head">
+            <h2>设置日期和时间</h2>
+            <div class="calendar-toggle">
+              <button class="active" type="button" data-calendar="solar">公历</button>
+              <button type="button" data-calendar="lunar">农历</button>
+            </div>
+          </div>
+          <div class="date-wheel">
+            <select id="pickYear"></select>
+            <span>-</span>
+            <select id="pickMonth"></select>
+            <span>-</span>
+            <select id="pickDay"></select>
+          </div>
+          <div class="time-wheel">
+            <select id="pickHour"></select>
+            <span>:</span>
+            <select id="pickMinute"></select>
+          </div>
+          <div class="picker-actions">
+            <button id="clearTimePicker" type="button">清空</button>
+            <button id="cancelTimePicker" type="button">取消</button>
+            <button id="confirmTimePicker" type="button">确定</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="placePicker" class="picker-layer hidden" aria-modal="true">
+        <div class="picker-panel place-panel">
+          <div class="picker-head">
+            <h2>选择出生故里</h2>
+          </div>
+          <div class="place-wheel">
+            <select id="pickProvince"></select>
+            <select id="pickCity"></select>
+          </div>
+          <div class="picker-actions">
+            <button id="cancelPlacePicker" type="button">取消</button>
+            <button id="confirmPlacePicker" type="button">确定</button>
+          </div>
+        </div>
+      </section>
+
+      <div id="resultArea" class="result-area hidden">
+      <section class="card profile-card">
+        <div class="profile-line">
+          <span>姓名：<b id="showName">--</b></span>
+          <span>性别：<b id="showGender">--</b></span>
+        </div>
+        <p>出生地点：<b id="showPlace">--</b></p>
+        <p>出生时间（公历）：<b id="showSolar">--</b></p>
+        <p>出生时间（农历）：<b id="showLunar">--</b></p>
+        <p>出生时辰：<b id="showHour">--</b></p>
+        <p id="trueSolarLine" class="hidden">真太阳时：<b id="showTrueSolar">--</b></p>
+        <p id="solarCalcLine" class="hidden">换算说明：<b id="showSolarCalc">--</b></p>
+      </section>
+
+      <section class="card chart-card">
+        <div class="chart-grid" id="baziGrid"></div>
+      </section>
+
+      <section class="card compact-card">
+        <h2>格局</h2>
+        <strong id="patternText">--</strong>
+        <span id="patternHint">所有格局均由《归元命理》体系得出</span>
+      </section>
+
+      <section class="card fortune-card">
+        <div class="fortune-summary" id="fortuneSummary">--</div>
+        <div class="fortune-window">
+          <div class="fortune-tier">
+            <div class="fortune-section-title">大运</div>
+            <div class="timeline-scroll">
+              <div class="timeline-row" id="luckStrip"></div>
+            </div>
+          </div>
+          <div class="fortune-tier">
+            <div class="fortune-section-title">流年</div>
+            <div class="timeline-scroll">
+              <div class="timeline-row" id="yearStrip"></div>
+            </div>
+          </div>
+          <div class="fortune-tier">
+            <div class="fortune-section-title">流月</div>
+            <div class="timeline-scroll">
+              <div class="timeline-row" id="monthStrip"></div>
+            </div>
+          </div>
+          <div class="fortune-tier">
+            <div class="fortune-section-title">流日</div>
+            <div class="timeline-scroll">
+              <div class="timeline-row yearly-row" id="dayStrip"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section id="duiyuanApplyCard" class="card duiyuan-apply-card hidden">
+        <button id="toggleDuiyuanApply" class="duiyuan-apply-head" type="button">
+          <span>兑元</span>
+          <b>详情</b>
+        </button>
+        <div id="duiyuanApplyBody" class="duiyuan-apply-body hidden"></div>
+      </section>
+      <nav class="archive-query-bar" aria-label="存档查询">
+        <button id="archiveChart" type="button">存档</button>
+        <button id="openQueryPage" type="button">查询</button>
+      </nav>
+      </div>
+
+      <section id="queryPage" class="query-page hidden" aria-label="查询存档">
+        <div class="query-backbar">
+          <button id="closeQueryPage" type="button" aria-label="返回">‹</button>
+          <h2>历史记录</h2>
+          <span aria-hidden="true"></span>
+        </div>
+        <div class="query-head">
+          <button id="toggleQuerySelect" type="button">选择</button>
+          <label class="query-search">
+            <span>搜索</span>
+            <input id="querySearch" type="search" placeholder="搜索姓名 / 时间 / 地点" />
+            <button id="clearQuerySearch" type="button" aria-label="清空搜索">×</button>
+          </label>
+          <button id="queryDeleteTop" type="button">删除</button>
+        </div>
+        <div id="queryList" class="query-list"></div>
+        <button id="duiyuanButton" class="duiyuan-button" type="button">兑元口诀</button>
+        <p class="duiyuan-note">兑元口诀为《归元命理》独有传承</p>
+      </section>
+
+      <section id="duiyuanPage" class="duiyuan-page hidden" aria-label="兑元口诀">
+        <header class="duiyuan-head">
+          <button id="closeDuiyuanPage" type="button" aria-label="返回">‹</button>
+          <h2>兑元口诀</h2>
+        </header>
+        <div class="duiyuan-circle" id="duiyuanCircle">
+          <div class="duiyuan-center">
+            <h3 id="duiyuanComboTitle">子丑合</h3>
+            <p id="duiyuanComboText">子丑婚姻不自由，祖辈凶死小辈浊。</p>
+          </div>
+        </div>
+        <div class="duiyuan-tabs" id="duiyuanTabs"></div>
+        <section class="duiyuan-summary" id="duiyuanSummary"></section>
+      </section>
+    </main>
+
+    <script src="../vendor/iztro.min.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>
