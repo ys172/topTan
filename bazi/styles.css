@@ -1,5 +1,16 @@
+﻿@font-face {
+  font-family: "AlibabaPuHuiTi";
+  src:
+    url("../fonts/AlibabaPuHuiTi-3-55-Regular.woff2") format("woff2"),
+    url("../fonts/AlibabaPuHuiTi-3-55-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   color-scheme: light;
+  --app-font: "AlibabaPuHuiTi", "Alibaba PuHuiTi 3.0", "Microsoft YaHei", "PingFang SC", sans-serif;
   --page: #f6f2e9;
   --card: #ffffff;
   --text: #171717;
@@ -16,23 +27,24 @@
   --earth: #d89a00;
   --metal: #3f7fe8;
   --water: #155487;
-  font-family: SimSun, "宋体", serif;
+  font-family: var(--app-font);
+}
+
+html {
+  font-size: clamp(14px, 3.85vw, 16px);
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 * {
   box-sizing: border-box;
 }
 
-html {
-  -webkit-text-size-adjust: 100%;
-  text-size-adjust: 100%;
-}
-
 body {
   margin: 0;
   background: var(--page);
   color: var(--text);
-  font-family: SimSun, "宋体", serif;
+  font-family: var(--app-font);
 }
 
 button,
@@ -246,7 +258,7 @@ body[data-page="input"] .input-backbar {
 }
 
 .edit-card::before {
-  content: "⌁";
+  content: "鈱?;
   position: absolute;
   left: 16%;
   top: 92px;
@@ -392,7 +404,7 @@ body[data-page="input"] .edit-card::after {
 }
 
 .entry-value::after {
-  content: "›";
+  content: "鈥?;
   color: #9f773b;
   font-size: 27px;
   line-height: 1;
@@ -785,9 +797,50 @@ button {
   word-break: keep-all;
 }
 
+.fortune-score-cell {
+  grid-column: 2 / span 4;
+  min-width: 0;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+  font-size: 19px;
+  line-height: 1.25;
+  word-break: keep-all;
+}
+
+.fortune-score-cell span {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.fortune-score-spacer {
+  min-width: 0;
+  min-height: 1.25em;
+}
+
+.nayin-vertical {
+  display: grid;
+  place-items: center;
+  justify-self: stretch;
+  align-self: center;
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+  white-space: normal;
+  line-height: 1.05;
+  text-align: center;
+}
+
 .cols-6 .cell,
 .cols-7 .cell,
 .cols-8 .cell {
+  font-size: 16px;
+}
+
+.cols-6 .fortune-score-cell,
+.cols-7 .fortune-score-cell,
+.cols-8 .fortune-score-cell {
+  gap: 7px;
   font-size: 16px;
 }
 
@@ -945,10 +998,10 @@ button {
 
 .duiyuan-apply-row {
   display: grid;
-  grid-template-columns: 96px 1fr;
-  gap: 16px;
+  grid-template-columns: 1fr;
+  gap: 8px;
   align-items: start;
-  margin-bottom: 16px;
+  margin-bottom: 18px;
 }
 
 .duiyuan-apply-row.combo {
@@ -959,6 +1012,7 @@ button {
   min-height: 34px;
   display: inline-grid;
   place-items: center;
+  justify-self: start;
   padding: 2px 8px;
   border: 1px solid var(--gold);
   border-radius: 4px;
@@ -969,9 +1023,12 @@ button {
 }
 
 .duiyuan-apply-text {
+  width: 100%;
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  column-gap: 14px;
+  grid-template-columns: 1fr;
+  justify-items: center;
+  text-align: center;
+  column-gap: 0;
   row-gap: 4px;
   color: #050505;
   font-size: 18px;
@@ -979,21 +1036,9 @@ button {
 }
 
 .duiyuan-apply-text p {
+  width: 100%;
   margin: 0;
-}
-
-@media (max-width: 480px) {
-  .duiyuan-apply-row {
-    grid-template-columns: 86px minmax(0, 1fr);
-    gap: 12px;
-  }
-
-  .duiyuan-apply-text {
-    grid-template-columns: 1fr;
-    row-gap: 6px;
-    font-size: 17px;
-    line-height: 1.45;
-  }
+  text-align: center;
 }
 
 .fortune-summary {
@@ -1428,7 +1473,7 @@ body[data-page="chart"] .archive-query-bar button {
   width: min(480px, 100%);
   margin: 0 auto;
   display: grid;
-  grid-template-rows: 52px 58px minmax(0, 1fr) 70px 26px;
+  grid-template-rows: 52px 58px minmax(0, 1fr);
   background:
     linear-gradient(180deg, rgba(249, 243, 230, 0.72), rgba(249, 243, 230, 0.56)),
     url("./assets/input-bg.jpg") center top / cover no-repeat;
@@ -1761,6 +1806,20 @@ body[data-page="chart"] .archive-query-bar button {
   align-self: start;
 }
 
+.input-duiyuan-panel {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 6px;
+  justify-items: center;
+  width: min(430px, calc(100% - 14px));
+  margin: 34px auto 0;
+}
+
+.home-duiyuan-note {
+  margin-top: 0;
+}
+
 .duiyuan-page {
   position: fixed;
   inset: 0;
@@ -1772,6 +1831,7 @@ body[data-page="chart"] .archive-query-bar button {
     linear-gradient(180deg, rgba(249, 243, 230, 0.62), rgba(249, 243, 230, 0.44)),
     url("./assets/duiyuan-bg.jpg") center top / cover no-repeat;
   color: #050505;
+  font-size: 1rem;
 }
 
 .duiyuan-page.hidden {
@@ -1782,9 +1842,9 @@ body[data-page="chart"] .archive-query-bar button {
   position: sticky;
   top: 0;
   z-index: 3;
-  height: 52px;
+  height: 3.25rem;
   display: grid;
-  grid-template-columns: 48px 1fr 48px;
+  grid-template-columns: 3rem 1fr 3rem;
   align-items: center;
   background: rgba(249, 243, 230, 0.52);
   color: #211b13;
@@ -1792,25 +1852,17 @@ body[data-page="chart"] .archive-query-bar button {
 }
 
 .duiyuan-head::after {
-  content: "冊";
-  justify-self: center;
-  color: #9f773b;
-  font-size: 20px;
-  line-height: 1;
-}
-
-.duiyuan-head::after {
   content: none;
 }
 
 .duiyuan-head button {
-  width: 44px;
-  height: 44px;
-  min-height: 44px;
+  width: 2.75rem;
+  height: 2.75rem;
+  min-height: 2.75rem;
   border: 0;
   background: transparent;
   color: #9f773b;
-  font-size: 34px;
+  font-size: 2.125rem;
   line-height: 1;
   padding: 0 0 3px;
 }
@@ -1818,15 +1870,15 @@ body[data-page="chart"] .archive-query-bar button {
 .duiyuan-head h2 {
   margin: 0;
   text-align: center;
-  font-size: 24px;
+  font-size: 1.5rem;
   font-weight: 700;
 }
 
 .duiyuan-circle {
   position: relative;
-  width: min(404px, calc(100vw - 14px));
-  height: min(404px, calc(100vw - 14px));
-  margin: 4px auto 6px;
+  width: min(25.25rem, calc(100vw - 0.875rem));
+  height: min(25.25rem, calc(100vw - 0.875rem));
+  margin: 0.25rem auto 0.375rem;
 }
 
 .duiyuan-center {
@@ -1834,24 +1886,27 @@ body[data-page="chart"] .archive-query-bar button {
   z-index: 2;
   left: 50%;
   top: 48%;
-  width: 46%;
+  width: 54%;
   transform: translate(-50%, -50%);
   text-align: center;
 }
 
 .duiyuan-center h3 {
-  margin: 0 0 12px;
+  margin: 0 0 0.625rem;
   color: var(--deep-jade);
-  font-size: 23px;
+  font-size: clamp(1.22rem, 5vw, 1.45rem);
   font-weight: 800;
-  line-height: 1.08;
+  line-height: 1.12;
+  white-space: nowrap;
 }
 
 .duiyuan-center p {
   margin: 0;
   color: #5c5347;
-  font-size: 23px;
-  line-height: 1.36;
+  font-size: clamp(1.12rem, 4.55vw, 1.42rem);
+  line-height: 1.42;
+  word-break: keep-all;
+  overflow-wrap: normal;
 }
 
 .duiyuan-ring-line {
@@ -1869,16 +1924,16 @@ body[data-page="chart"] .archive-query-bar button {
 .duiyuan-branch {
   position: absolute;
   z-index: 1;
-  width: 50px;
-  height: 50px;
-  min-height: 50px;
-  padding: 0 0 3px;
+  width: 3.125rem;
+  height: 3.125rem;
+  min-height: 3.125rem;
+  padding: 0 0 0.1875rem;
   transform: translate(-50%, -50%);
   border: 1px solid rgba(207, 176, 112, 0.72);
   border-radius: 50%;
   background: rgba(255, 250, 238, 0.88);
   color: #2b2118;
-  font-size: 28px;
+  font-size: 1.75rem;
   line-height: 1;
   box-shadow: 0 2px 8px rgba(118, 88, 45, 0.12), inset 0 1px 0 rgba(255,255,255,0.65);
 }
@@ -1894,17 +1949,17 @@ body[data-page="chart"] .archive-query-bar button {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 1px;
-  margin: 8px 10px 10px;
+  margin: 0.5rem 0.625rem 0.625rem;
   padding: 0;
   border: 1px solid rgba(207, 176, 112, 0.48);
-  border-radius: 7px;
+  border-radius: 0.4375rem;
   overflow: hidden;
   background: rgba(207, 176, 112, 0.4);
 }
 
 .duiyuan-tabs button {
   min-width: 0;
-  min-height: 80px;
+  min-height: 5rem;
   padding: 0;
   border: 0;
   border-radius: 0;
@@ -1913,7 +1968,7 @@ body[data-page="chart"] .archive-query-bar button {
   justify-content: center;
   background: rgba(255, 250, 238, 0.88);
   color: #2b2118;
-  font-size: 27px;
+  font-size: 1.6875rem;
   line-height: 1;
   writing-mode: vertical-rl;
   text-orientation: upright;
@@ -1925,17 +1980,17 @@ body[data-page="chart"] .archive-query-bar button {
 }
 
 .duiyuan-summary {
-  min-height: 236px;
+  min-height: 14.75rem;
   display: block;
-  margin: 0 22px 28px;
-  padding: 16px 14px;
+  margin: 0 1.375rem 1.75rem;
+  padding: 1rem 0.875rem;
   border: 1px solid rgba(207, 176, 112, 0.72);
-  border-radius: 8px;
+  border-radius: 0.5rem;
   background:
     linear-gradient(180deg, rgba(255, 252, 244, 0.88), rgba(250, 243, 226, 0.78)),
     url("./assets/card-bg.jpg") right bottom / 100% auto no-repeat;
   color: #2b2118;
-  font-size: 23px;
+  font-size: clamp(1.2rem, 4.8vw, 1.44rem);
   line-height: 1.72;
   text-align: center;
   box-shadow: 0 3px 10px rgba(118, 88, 45, 0.12), inset 0 0 0 2px rgba(255, 250, 238, 0.75);
@@ -1969,6 +2024,11 @@ body[data-page="chart"] .archive-query-bar button {
     font-size: 17px;
   }
 
+  .fortune-score-cell {
+    gap: 7px;
+    font-size: 15px;
+  }
+
   .profile-card {
     font-size: 17px;
   }
@@ -1992,8 +2052,8 @@ body[data-page="chart"] .archive-query-bar button {
   }
 
   .duiyuan-apply-row {
-    grid-template-columns: 78px minmax(0, 1fr);
-    gap: 10px;
+    grid-template-columns: 1fr;
+    gap: 8px;
   }
 
   .duiyuan-apply-tag {
@@ -2001,6 +2061,7 @@ body[data-page="chart"] .archive-query-bar button {
   }
 
   .duiyuan-apply-text {
+    column-gap: 0;
     font-size: 16px;
   }
 
@@ -2045,31 +2106,31 @@ body[data-page="chart"] .archive-query-bar button {
   }
 
   .duiyuan-head {
-    height: 52px;
+    height: 3.25rem;
   }
 
   .duiyuan-head h2 {
-    font-size: 24px;
+    font-size: 1.5rem;
   }
 
   .duiyuan-circle {
-    width: min(388px, calc(100vw - 12px));
-    height: min(388px, calc(100vw - 12px));
+    width: min(24.25rem, calc(100vw - 0.75rem));
+    height: min(24.25rem, calc(100vw - 0.75rem));
   }
 
   .duiyuan-branch {
-    width: 48px;
-    height: 48px;
-    min-height: 48px;
-    font-size: 27px;
+    width: 3rem;
+    height: 3rem;
+    min-height: 3rem;
+    font-size: 1.6875rem;
   }
 
   .duiyuan-center h3 {
-    font-size: 22px;
+    font-size: clamp(1.18rem, 5vw, 1.38rem);
   }
 
   .duiyuan-center p {
-    font-size: 22px;
+    font-size: clamp(1.08rem, 4.55vw, 1.35rem);
   }
 
   .duiyuan-tabs {
@@ -2079,14 +2140,15 @@ body[data-page="chart"] .archive-query-bar button {
   }
 
   .duiyuan-tabs button {
-    min-height: 75px;
-    font-size: 26px;
+    min-height: 4.6875rem;
+    font-size: 1.625rem;
   }
 
   .duiyuan-summary {
     margin-left: 18px;
     margin-right: 18px;
     padding: 14px 12px;
-    font-size: 22px;
+    font-size: clamp(1.12rem, 4.8vw, 1.36rem);
   }
 }
+

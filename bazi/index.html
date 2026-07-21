@@ -11,11 +11,11 @@
       <header class="input-backbar">
         <button id="backToMainHome" class="input-back-button" type="button" aria-label="返回首页">‹</button>
         <h1>四柱干支历</h1>
-        <span class="input-top-mark" aria-hidden="true">◎</span>
+        <span aria-hidden="true"></span>
       </header>
       <header class="topbar">
         <button id="backToInput" class="icon-button" type="button" aria-label="返回">‹</button>
-        <h1>干支历法</h1>
+        <h1>四柱干支历</h1>
         <button id="toggleEdit" class="text-button" type="button" aria-hidden="true"></button>
       </header>
 
@@ -67,6 +67,10 @@
             </nav>
           </section>
         </form>
+        <div class="input-duiyuan-panel">
+          <button id="duiyuanButton" class="duiyuan-button home-duiyuan-button" type="button">兑元口诀</button>
+          <p class="duiyuan-note home-duiyuan-note">兑元口诀为《归元命理》独有传承</p>
+        </div>
       </section>
 
       <section id="timePicker" class="picker-layer hidden" aria-modal="true">
@@ -196,8 +200,6 @@
           <button id="queryDeleteTop" type="button">删除</button>
         </div>
         <div id="queryList" class="query-list"></div>
-        <button id="duiyuanButton" class="duiyuan-button" type="button">兑元口诀</button>
-        <p class="duiyuan-note">兑元口诀为《归元命理》独有传承</p>
       </section>
 
       <section id="duiyuanPage" class="duiyuan-page hidden" aria-label="兑元口诀">

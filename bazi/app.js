@@ -18,6 +18,12 @@ const HIDDEN_STEMS = {
   戌: [{ stem: "丁", score: 1 }, { stem: "戊", score: 6 }, { stem: "辛", score: 3 }],
   亥: [{ stem: "壬", score: 7 }, { stem: "甲", score: 3 }]
 };
+const PATTERN_RULES = {
+  木: { advanceBranch: "寅", advancePillar: "丁卯", properBranch: "卯", properExcludedPillar: "丁卯", specialPillars: ["丁卯", "乙卯"] },
+  火: { advanceBranch: "巳", advancePillar: "戊午", properBranch: "午", properExcludedPillar: "戊午", specialPillars: ["戊午", "丙午"] },
+  金: { advanceBranch: "申", advancePillar: "癸酉", properBranch: "酉", properExcludedPillar: "癸酉", specialPillars: ["癸酉", "辛酉"] },
+  水: { advanceBranch: "亥", advancePillar: "甲子", properBranch: "子", properExcludedPillar: "甲子", specialPillars: ["甲子", "壬子"] }
+};
 const NAYIN = {
   甲子: "海中金", 乙丑: "海中金", 丙寅: "炉中火", 丁卯: "炉中火", 戊辰: "大林木", 己巳: "大林木",
   庚午: "路旁土", 辛未: "路旁土", 壬申: "剑锋金", 癸酉: "剑锋金", 甲戌: "山头火", 乙亥: "山头火",
@@ -276,6 +282,150 @@ function hiddenStemText(branch, vertical = false) {
       <small>${score}</small>
     </span>
   `).join(vertical ? "" : "");
+}
+
+function zeroElementScore() {
+  return Object.fromEntries(ELEMENTS.map((element) => [element, 0]));
+}
+
+function fortuneHiddenStructure(branch) {
+  return (HIDDEN_STEMS[branch] || []).map(({ stem, score }) => ({ stem, score }));
+}
+
+function addHiddenScoreToElements(total, hidden, progress, segmentLengths) {
+  let cursor = 0;
+  hidden.forEach((item, index) => {
+    const length = segmentLengths[index] || 0;
+    const start = cursor;
+    const end = cursor + length;
+    const released = Math.max(0, Math.min(progress, end) - start);
+    cursor = end;
+    if (!length || released <= 0) return;
+    total[STEM_ELEMENT[item.stem]] += item.score * (released / length);
+  });
+  return total;
+}
+
+function fullHiddenScore(branch) {
+  const total = zeroElementScore();
+  fortuneHiddenStructure(branch).forEach(({ stem, score }) => {
+    total[STEM_ELEMENT[stem]] += score;
+  });
+  return total;
+}
+
+function mergeElementScores(...scoresList) {
+  const total = zeroElementScore();
+  scoresList.forEach((scores) => {
+    ELEMENTS.forEach((element) => {
+      total[element] += scores[element] || 0;
+    });
+  });
+  return total;
+}
+
+function scoreBySegments(branch, progress, segmentLengths) {
+  const total = zeroElementScore();
+  const hidden = fortuneHiddenStructure(branch);
+  const maxProgress = segmentLengths.reduce((sum, value) => sum + value, 0);
+  addHiddenScoreToElements(total, hidden, Math.max(0, Math.min(progress, maxProgress)), segmentLengths);
+  return total;
+}
+
+function fortuneLimitInfo(gender, age) {
+  const male = gender === "男";
+  const periodLength = male ? 16 : 15;
+  const starts = male ? [1, 17, 33, 49] : [1, 16, 31, 46];
+  const index = starts.findIndex((start, itemIndex) => {
+    const next = starts[itemIndex + 1] ?? Infinity;
+    return age >= start && age < next;
+  });
+  const pillarIndex = Math.max(0, index);
+  return {
+    pillarIndex,
+    periodLength,
+    progress: Math.min(Math.max(age - starts[pillarIndex] + 1, 0), periodLength)
+  };
+}
+
+function scoreLimitFortune(gender, natalPillars, age) {
+  const limit = fortuneLimitInfo(gender, age);
+  const total = zeroElementScore();
+  natalPillars.forEach((pillar, index) => {
+    if (index > limit.pillarIndex) return;
+    const branch = pillar.branch;
+    const hiddenCount = fortuneHiddenStructure(branch).length;
+    const segmentLengths = {
+      1: [limit.periodLength],
+      2: [10, limit.periodLength - 10],
+      3: [limit.periodLength / 3, limit.periodLength / 3, limit.periodLength / 3]
+    }[hiddenCount] || [];
+    const progress = index < limit.pillarIndex ? limit.periodLength : limit.progress;
+    const scores = scoreBySegments(branch, progress, segmentLengths);
+    ELEMENTS.forEach((element) => {
+      total[element] += scores[element] || 0;
+    });
+  });
+  return total;
+}
+
+function scoreDaYunFortune(branch, yearIndex) {
+  const hiddenCount = fortuneHiddenStructure(branch).length;
+  const segmentLengths = {
+    1: [10],
+    2: [6, 4],
+    3: [10 / 3, 10 / 3, 10 / 3]
+  }[hiddenCount] || [];
+  return scoreBySegments(branch, yearIndex, segmentLengths);
+}
+
+function scoreLiuNianFortune(branch, monthIndex = null) {
+  if (!monthIndex) return fullHiddenScore(branch);
+  const hiddenCount = fortuneHiddenStructure(branch).length;
+  const segmentLengths = {
+    1: [12],
+    2: [8, 4],
+    3: [4, 4, 4]
+  }[hiddenCount] || [];
+  return scoreBySegments(branch, monthIndex, segmentLengths);
+}
+
+function activeLuckYearIndex(luck, year) {
+  if (!luck || !year) return 1;
+  return Math.max(1, Math.min(10, year.year - luck.startYear + 1));
+}
+
+function activeMonthIndex(year, month) {
+  if (!year || !month) return null;
+  const months = monthsForYear(year.year);
+  const index = months.findIndex((item) => selectedKey(item) === selectedKey(month));
+  return index >= 0 ? index + 1 : null;
+}
+
+function calculateFortuneScore() {
+  if (!chartState?.selections?.luck) return zeroElementScore();
+  const { values, pillars, selections } = chartState;
+  const luck = selections.luck;
+  const year = selections.year;
+  const month = selections.month;
+  const yearIndex = activeLuckYearIndex(luck, year);
+  const age = year ? year.age : luck.startAge;
+  const monthIndex = activeMonthIndex(year, month);
+  return mergeElementScores(
+    scoreLimitFortune(values.sex, pillars, age),
+    scoreDaYunFortune(luck.pillar[1], yearIndex),
+    year ? scoreLiuNianFortune(year.pillar[1], monthIndex) : zeroElementScore()
+  );
+}
+
+function formatFortuneScoreValue(value) {
+  const rounded = Math.round((Math.abs(value) < 1e-10 ? 0 : value) * 100) / 100;
+  return String(rounded);
+}
+
+function fortuneScoreText() {
+  const scores = calculateFortuneScore();
+  return ELEMENTS.map((element) => `<span>${element}${formatFortuneScoreValue(scores[element])}</span>`).join("");
 }
 
 function nextGanzhi(text, step) {
@@ -636,26 +786,29 @@ function hasStrongHiddenElement(branch, element) {
   return HIDDEN_STEMS[branch].some(({ stem, score }) => STEM_ELEMENT[stem] === element && score > 5);
 }
 
+function hasStrongHiddenStemWithPolarity(branch, element, polarity) {
+  return HIDDEN_STEMS[branch].some(({ stem, score }) => (
+    score > 5 && STEM_ELEMENT[stem] === element && STEM_YINYANG[stem] === polarity
+  ));
+}
+
 function patternName(pillars) {
   const dayStem = pillars[2].stem;
   const dayElement = STEM_ELEMENT[dayStem];
-  const dayBranch = pillars[2].branch;
   const dayPolarity = STEM_YINYANG[dayStem];
-  const rules = {
-    木: { advanceBranch: "寅", properBranch: "卯", advanceSpecial: "丁卯", properExclude: "丁卯" },
-    火: { advanceBranch: "巳", properBranch: "午", advanceSpecial: "戊午", properExclude: "戊午" },
-    金: { advanceBranch: "申", properBranch: "酉", advanceSpecial: "癸酉", properExclude: "癸酉" },
-    水: { advanceBranch: "亥", properBranch: "子", advanceSpecial: "甲子", properExclude: "甲子" }
-  };
 
   if (dayElement === "土") return "化气格";
 
-  const rule = rules[dayElement];
+  const rule = PATTERN_RULES[dayElement];
   const hasRoot = pillars.some((pillar) => hasStrongHiddenElement(pillar.branch, dayElement));
   if (!hasRoot) return "退气格";
 
-  const isAdvance = (pillar) => pillar.branch === rule.advanceBranch || pillar.text === rule.advanceSpecial;
-  const isProper = (pillar) => pillar.branch === rule.properBranch && pillar.text !== rule.properExclude;
+  if (rule.specialPillars.every((text) => pillars.some((pillar) => pillar.text === text))) {
+    return "特殊格局";
+  }
+
+  const isAdvance = (pillar) => pillar.branch === rule.advanceBranch || pillar.text === rule.advancePillar;
+  const isProper = (pillar) => pillar.branch === rule.properBranch && pillar.text !== rule.properExcludedPillar;
   const hasAdvance = pillars.some(isAdvance);
   const hasProper = pillars.some(isProper);
 
@@ -663,14 +816,21 @@ function patternName(pillars) {
     const dayPillar = pillars[2];
     if (isAdvance(dayPillar)) return "进气格";
     if (isProper(dayPillar)) return "正气格";
-    if (dayPolarity === "阳") return "进气格";
-    if (dayPolarity === "阴") return "正气格";
+
+    const advanceMatchesPolarity = pillars.some((pillar) => (
+      isAdvance(pillar) && hasStrongHiddenStemWithPolarity(pillar.branch, dayElement, dayPolarity)
+    ));
+    const properMatchesPolarity = pillars.some((pillar) => (
+      isProper(pillar) && hasStrongHiddenStemWithPolarity(pillar.branch, dayElement, dayPolarity)
+    ));
+    if (advanceMatchesPolarity && !properMatchesPolarity) return "进气格";
+    if (properMatchesPolarity && !advanceMatchesPolarity) return "正气格";
     return "特殊格局";
   }
 
   if (hasAdvance) return "进气格";
   if (hasProper) return "正气格";
-  return dayBranch ? "特殊格局" : "--";
+  return "特殊格局";
 }
 
 function pillarIsFlower(pillar) {
@@ -948,8 +1108,22 @@ function duiyuanMatchesForPillars(pillars) {
   }).filter((item) => item.combos.length > 0);
 }
 
-function formatDuiyuanText(text) {
-  return text.split("\n").filter(Boolean).map((line) => `<p>${line}</p>`).join("");
+function formatDuiyuanText(text, options = {}) {
+  const lines = text.split("\n").map((line) => line.trim()).filter(Boolean);
+  if (!options.mergeIncompleteLines) {
+    return lines.map((line) => `<p>${line}</p>`).join("");
+  }
+  const sentences = [];
+  let current = "";
+  lines.forEach((line) => {
+    current += line;
+    if (/[。！？；]$/.test(line)) {
+      sentences.push(current);
+      current = "";
+    }
+  });
+  if (current) sentences.push(current);
+  return sentences.map((line) => `<p>${line}</p>`).join("");
 }
 
 function renderDuiyuanApply() {
@@ -972,7 +1146,7 @@ function renderDuiyuanApply() {
       ${combos.map((combo) => `
         <div class="duiyuan-apply-row combo">
           <span class="duiyuan-apply-tag">${combo.title}</span>
-          <div class="duiyuan-apply-text">${formatDuiyuanText(combo.text)}</div>
+          <div class="duiyuan-apply-text">${formatDuiyuanText(combo.text, { mergeIncompleteLines: true })}</div>
         </div>
       `).join("")}
     </section>
@@ -991,11 +1165,13 @@ function renderBazi(basePillars, sex, additions = []) {
   const labels = ["年柱", "月柱", "日柱", "时柱", ...additions.map((pillar) => pillar.label)];
   const colCount = pillars.length;
   const hasAdditions = additions.length > 0;
+  const fortuneSpacers = Array.from({ length: Math.max(0, colCount - 4) }, () => "");
   const rows = [
     [`<div class="side-block"><div class="side-title">${sideTitle}</div><div class="small-score">${ELEMENTS.map((item) => `${item}${String(scores[item]).padStart(2, "0")}分`).join("<br>")}</div></div>`, ...labels],
     [...pillars.map((pillar) => `<span class="big-char ${stemClass(pillar.stem)}">${pillar.stem}</span>`)],
     [...pillars.map((pillar) => `<span class="big-char ${branchClass(pillar.branch)}">${pillar.branch}</span>`)],
     ["藏干", ...pillars.map((pillar) => hiddenStemText(pillar.branch, hasAdditions))],
+    ["运程", fortuneScoreText(), ...fortuneSpacers],
     ["空亡", ...pillars.map((pillar) => EMPTY_BRANCHES[pillar.text] || "--")],
     ["纳音", ...pillars.map((pillar) => NAYIN[pillar.text] || "--")],
     ["花甲", ...pillars.map(pillarIsFlower)]
@@ -1011,7 +1187,9 @@ function renderBazi(basePillars, sex, additions = []) {
     if (rowIndex === 0) return `<div class="${additionClass.trim()}"><span class="pillar-label">${cell}</span></div>`;
     if (rowIndex === 1 || rowIndex === 2) return `<div class="cell${additionClass}">${cell}</div>`;
     if (index === 0) return `<div class="row-title">${cell}</div>`;
-    return `<div class="cell${additionClass}${rowIndex === 3 && hasAdditions ? " hidden-vertical" : ""}">${cell}</div>`;
+    if (rowIndex === 4 && index === 1) return `<div class="fortune-score-cell">${cell}</div>`;
+    if (rowIndex === 4) return `<div class="fortune-score-spacer" aria-hidden="true"></div>`;
+    return `<div class="cell${additionClass}${rowIndex === 3 && hasAdditions ? " hidden-vertical" : ""}${rowIndex === 6 && hasAdditions ? " nayin-vertical" : ""}">${cell}</div>`;
   }).join("")).join("") + renderAdditionControls(additions);
   bindRemovePillarControls();
 }
@@ -1113,11 +1291,6 @@ function activeYear() {
 function activeMonth() {
   const months = monthsForYear(activeYear().year);
   return chartState.selections.month || months.find((month) => month.isCurrent) || months[0];
-}
-
-function activeDay() {
-  const days = daysForMonth(activeMonth());
-  return chartState.selections.day || days.find((day) => day.isCurrent) || days[0];
 }
 
 function renderFortune() {
