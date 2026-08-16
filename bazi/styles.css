@@ -547,6 +547,35 @@ body[data-page="input"] .edit-card::after {
   color: #fff;
 }
 
+.manual-time-field {
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 16px;
+  color: #5a5a5a;
+  font-size: 17px;
+  font-weight: 400;
+}
+
+.manual-time-field input {
+  width: 100%;
+  height: 42px;
+  padding: 0 12px;
+  border: 1px solid rgba(201, 166, 91, 0.55);
+  border-radius: 6px;
+  background: rgba(255, 252, 242, 0.86);
+  color: #202020;
+  font-size: 18px;
+  font-weight: 400;
+}
+
+.manual-time-field input:focus {
+  border-color: var(--teal);
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(0, 106, 103, 0.12);
+}
+
 .date-wheel,
 .time-wheel,
 .place-wheel {

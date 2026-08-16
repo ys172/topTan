@@ -2856,6 +2856,10 @@
         const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/.exec(value);
         if (!match) throw new Error("请选择一个完整时间。");
         const [year, month, day, hour, minute] = match.slice(1).map(Number);
+        if (year < 1000 || year > 9999) throw new Error("手动输入年份范围为 1000-9999 年。");
+        if (month < 1 || month > 12) throw new Error("请输入正确的月份。");
+        if (day < 1 || day > new Date(year, month, 0).getDate()) throw new Error("请输入正确的日期。");
+        if (hour < 0 || hour > 23 || minute < 0 || minute > 59) throw new Error("请输入正确的时间。");
         return { year, month, day, hour, minute };
       }
 

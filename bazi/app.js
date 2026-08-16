@@ -598,6 +598,33 @@ function pad2(value) {
   return String(value).padStart(2, "0");
 }
 
+const MANUAL_MIN_YEAR = 1000;
+const MANUAL_MAX_YEAR = 9999;
+const PICKER_MIN_YEAR = 1900;
+const PICKER_MAX_YEAR = 2100;
+
+function parseManualDateTime(value) {
+  const text = String(value || "").trim().replace("T", " ");
+  if (!text) return null;
+  const match = /^(\d{4})-(\d{1,2})-(\d{1,2})\s+(\d{1,2}):(\d{1,2})$/.exec(text);
+  if (!match) throw new Error("手动时间格式请填写为：1000-01-01 00:00。");
+  const [year, month, day, hour, minute] = match.slice(1).map(Number);
+  if (year < MANUAL_MIN_YEAR || year > MANUAL_MAX_YEAR) throw new Error("手动输入年份范围为 1000-9999 年。");
+  if (month < 1 || month > 12) throw new Error("请输入正确的月份。");
+  if (day < 1 || day > daysInMonth(year, month)) throw new Error("请输入正确的日期。");
+  if (hour < 0 || hour > 23 || minute < 0 || minute > 59) throw new Error("请输入正确的时间。");
+  return {
+    date: `${year}-${pad2(month)}-${pad2(day)}`,
+    time: `${pad2(hour)}:${pad2(minute)}`
+  };
+}
+
+function validateManualDate(date) {
+  const [year, month, day] = String(date || "").split("-").map(Number);
+  if (!year || year < MANUAL_MIN_YEAR || year > MANUAL_MAX_YEAR) throw new Error("出生年份范围为 1000-9999 年。");
+  if (month < 1 || month > 12 || day < 1 || day > daysInMonth(year, month)) throw new Error("出生日期不正确。");
+}
+
 function daysInMonth(year, month) {
   return new Date(year, month, 0).getDate();
 }
@@ -619,7 +646,7 @@ function syncPickerDays() {
 
 function initDateTimePicker() {
   const now = new Date();
-  fillNumberSelect($("#pickYear"), 1900, 2100, now.getFullYear());
+  fillNumberSelect($("#pickYear"), PICKER_MIN_YEAR, PICKER_MAX_YEAR, now.getFullYear());
   fillNumberSelect($("#pickMonth"), 1, 12, now.getMonth() + 1);
   fillNumberSelect($("#pickDay"), 1, daysInMonth(now.getFullYear(), now.getMonth() + 1), now.getDate());
   fillNumberSelect($("#pickHour"), 0, 23, now.getHours());
@@ -632,7 +659,9 @@ function setPickerFromCurrentValue() {
   const date = $("#birthDate").value;
   const time = $("#birthTime").value;
   const base = date && time ? birthDateTime(date, time) : new Date();
-  $("#pickYear").value = String(base.getFullYear());
+  $("#manualDateTime").value = date && time ? `${date} ${time}` : "";
+  const pickerYear = Math.min(PICKER_MAX_YEAR, Math.max(PICKER_MIN_YEAR, base.getFullYear()));
+  $("#pickYear").value = String(pickerYear);
   $("#pickMonth").value = String(base.getMonth() + 1);
   syncPickerDays();
   $("#pickDay").value = String(base.getDate());
@@ -705,16 +734,22 @@ function initEntryInteractions() {
   $("#clearTimePicker").addEventListener("click", () => {
     $("#birthDate").value = "";
     $("#birthTime").value = "";
+    $("#manualDateTime").value = "";
     $("#openTimePicker").textContent = "请选择";
     closeLayer("#timePicker");
   });
   $("#confirmTimePicker").addEventListener("click", () => {
-    const date = `${$("#pickYear").value}-${pad2($("#pickMonth").value)}-${pad2($("#pickDay").value)}`;
-    const time = `${pad2($("#pickHour").value)}:${pad2($("#pickMinute").value)}`;
-    $("#birthDate").value = date;
-    $("#birthTime").value = time;
-    $("#openTimePicker").textContent = `${date} ${time}`;
-    closeLayer("#timePicker");
+    try {
+      const manual = parseManualDateTime($("#manualDateTime").value);
+      const date = manual?.date || `${$("#pickYear").value}-${pad2($("#pickMonth").value)}-${pad2($("#pickDay").value)}`;
+      const time = manual?.time || `${pad2($("#pickHour").value)}:${pad2($("#pickMinute").value)}`;
+      $("#birthDate").value = date;
+      $("#birthTime").value = time;
+      $("#openTimePicker").textContent = `${date} ${time}`;
+      closeLayer("#timePicker");
+    } catch (error) {
+      $("#errorText").textContent = error.message || "请输入正确的出生时辰。";
+    }
   });
 
   $("#openPlacePicker").addEventListener("click", () => {
@@ -1403,6 +1438,7 @@ function calculate(event) {
       useTrueSolar: $("#useTrueSolar").checked
     };
     if (!values.date || !values.time) throw new Error("请选择出生时辰。");
+    validateManualDate(values.date);
     let chartDate = values.date;
     let chartTime = values.time;
     if (values.calendar === "lunar") {
